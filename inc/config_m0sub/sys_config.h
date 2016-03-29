@@ -1,6 +1,4 @@
 /*
- * @brief LPC18xx/43xx System Control Unit (SCU) control functions
- *
  * @note
  * Copyright(C) NXP Semiconductors, 2012
  * All rights reserved.
@@ -29,41 +27,13 @@
  * this code.
  */
 
-#include "chip.h"
+#ifndef __SYS_CONFIG_H_
+#define __SYS_CONFIG_H_
 
-/*****************************************************************************
- * Private types/enumerations/variables
- ****************************************************************************/
+/* LPC43xx chip family */
+#define CHIP_LPC43XX
 
-/*****************************************************************************
- * Public types/enumerations/variables
- ****************************************************************************/
+/* LPC43xx M0 Core type */
+#define LPC43XX_CORE_M0SUB
 
-/*****************************************************************************
- * Private functions
- ****************************************************************************/
-
-/*****************************************************************************
- * Public functions
- ****************************************************************************/
-
-/* GPIO Interrupt Pin Select */
-void Chip_SCU_GPIOIntPinSel(uint8_t PortSel, uint8_t PortNum, uint8_t PinNum)
-{
-	uint8_t  pinInt;
-	volatile uint32_t pinSel;
-
-	pinInt = ((PortNum & 0x7) << 5) | (PinNum & 0x1F);
-	if (PortSel < 4) {
-		pinSel = LPC_SCU->PINTSEL0;
-		pinSel &= ~(0xFF << (PortSel * 8));
-		pinSel |= (pinInt << (PortSel * 8));
-		LPC_SCU->PINTSEL0 = pinSel;
-	}
-	else {
-		pinSel = LPC_SCU->PINTSEL1;
-		pinSel &= ~(0xFF << ((PortSel - 4) * 8));
-		pinSel |= (pinInt << ((PortSel - 4) * 8));
-		LPC_SCU->PINTSEL1 = pinSel;
-	}
-}
+#endif /* __SYS_CONFIG_H_ */
