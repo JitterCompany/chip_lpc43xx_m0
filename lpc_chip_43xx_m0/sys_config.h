@@ -33,7 +33,4 @@
 /* LPC43xx chip family */
 #define CHIP_LPC43XX
 
-/* LPC43xx M0 Core type */
-#define LPC43XX_CORE_M0APP
-
 #endif /* __SYS_CONFIG_H_ */
