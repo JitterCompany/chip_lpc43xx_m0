@@ -41,7 +41,6 @@ file(GLOB SOURCES
     "lpc_chip_43xx_m0/src/*.c"
     )
 include_directories("lpc_chip_43xx_m0")
-include_directories("lpc_chip_43xx_m0/config_m0app")
 CPM_ExportAdditionalIncludeDir("lpc_chip_43xx_m0")
 
 set_property(GLOBAL PROPERTY test_prop "Hello World from chip (property)")
