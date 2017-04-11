@@ -118,7 +118,16 @@ typedef struct {							/*!< RGU Structure          */
  */
 STATIC INLINE void Chip_RGU_TriggerReset(CHIP_RGU_RST_T ResetNumber)
 {
-	LPC_RGU->RESET_CTRL[ResetNumber >> 5] = 1 << (ResetNumber & 31);
+    uint32_t mask = 0;
+    //check which register
+    if (ResetNumber >> 5 == 0) { //register 0
+        //read MP0SUB_RST status
+        mask = Chip_RGU_InReset(RGU_M0SUB_RST) << RGU_M0SUB_RST;
+    } else { //register 1
+        mask = Chip_RGU_InReset(RGU_M0APP_RST) << (RGU_M0APP_RST & 31);
+    }
+    // Apply mask to prevent M0 processors from unintentional booting 
+	LPC_RGU->RESET_CTRL[ResetNumber >> 5] = (1 << (ResetNumber & 31)) | mask;
 	/* Reset will auto clear after 1 clock cycle */
 }
 
