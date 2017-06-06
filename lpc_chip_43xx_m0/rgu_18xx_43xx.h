@@ -112,6 +112,16 @@ typedef struct {							/*!< RGU Structure          */
 } LPC_RGU_T;
 
 /**
+ * @brief	Checks the reset status of a peripheral
+ * @param	ResetNumber	: Peripheral reset number to trigger
+ * @return	true if the periperal is still being reset
+ */
+STATIC INLINE bool Chip_RGU_InReset(CHIP_RGU_RST_T ResetNumber)
+{
+	return !(LPC_RGU->RESET_ACTIVE_STATUS[ResetNumber >> 5] & (1 << (ResetNumber & 31)));
+}
+
+/**
  * @brief	Trigger a peripheral reset for the selected peripheral
  * @param	ResetNumber	: Peripheral reset number to trigger
  * @return	Nothing
@@ -129,16 +139,6 @@ STATIC INLINE void Chip_RGU_TriggerReset(CHIP_RGU_RST_T ResetNumber)
     // Apply mask to prevent M0 processors from unintentional booting 
 	LPC_RGU->RESET_CTRL[ResetNumber >> 5] = (1 << (ResetNumber & 31)) | mask;
 	/* Reset will auto clear after 1 clock cycle */
-}
-
-/**
- * @brief	Checks the reset status of a peripheral
- * @param	ResetNumber	: Peripheral reset number to trigger
- * @return	true if the periperal is still being reset
- */
-STATIC INLINE bool Chip_RGU_InReset(CHIP_RGU_RST_T ResetNumber)
-{
-	return !(LPC_RGU->RESET_ACTIVE_STATUS[ResetNumber >> 5] & (1 << (ResetNumber & 31)));
 }
 
 /**
