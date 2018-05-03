@@ -75,7 +75,10 @@ static int32_t sdmmc_execute_command(LPC_SDMMC_T *pSDMMC, uint32_t cmd, uint32_t
 	}
 
 	while (step) {
-		Chip_SDIF_SetClock(pSDMMC, Chip_Clock_GetBaseClocktHz(CLK_BASE_SDIO), g_card_info->card_info.speed);
+        // use speed setting from card_info, unless this is a low-speed command
+        // (during enumeration, speed should be limited to 400kHz)
+		Chip_SDIF_SetClock(pSDMMC, Chip_Clock_GetBaseClocktHz(CLK_BASE_SDIO),
+                (cmd & CMD_BIT_LS) ? SD_MMC_ENUM_CLOCK : g_card_info->card_info.speed);
 
 		/* Clear the interrupts */
 		Chip_SDIF_ClrIntStatus(pSDMMC, 0xFFFFFFFF);
@@ -318,6 +321,8 @@ int32_t Chip_SDMMC_GetState(LPC_SDMMC_T *pSDMMC)
 	return (int32_t) R1_CURRENT_STATE(g_card_info->card_info.response[0]);
 }
 
+
+
 /* Function to enumerate the SD/MMC/SDHC/MMC+ cards */
 uint32_t Chip_SDMMC_Acquire(LPC_SDMMC_T *pSDMMC, mci_card_struct *pcardinfo)
 {
@@ -334,8 +339,7 @@ uint32_t Chip_SDMMC_Acquire(LPC_SDMMC_T *pSDMMC, mci_card_struct *pcardinfo)
 	Chip_SDIF_SetCardType(pSDMMC, 0);
 
 	/* set high speed for the card as 20MHz */
-    // Overruled to ENUM_CLOCK
-	g_card_info->card_info.speed = SD_MMC_ENUM_CLOCK;
+	g_card_info->card_info.speed = MMC_MAX_CLOCK;
 
 	status = sdmmc_execute_command(pSDMMC, CMD_IDLE, 0, MCI_INT_CMD_DONE);
 
@@ -356,9 +360,8 @@ uint32_t Chip_SDMMC_Acquire(LPC_SDMMC_T *pSDMMC, mci_card_struct *pcardinfo)
 			tries = INIT_OP_RETRIES;
 
 			/* assume SD card */
-            // Overruled to ENUM_CLOCK
 			g_card_info->card_info.card_type |= CARD_TYPE_SD;
-			g_card_info->card_info.speed = SD_MMC_ENUM_CLOCK;
+			g_card_info->card_info.speed = SD_MAX_CLOCK;
 			break;
 
 		case 10:	/* Setup for MMC */
@@ -371,8 +374,7 @@ uint32_t Chip_SDMMC_Acquire(LPC_SDMMC_T *pSDMMC, mci_card_struct *pcardinfo)
 			++state;
 
 			/* for MMC cards high speed is 20MHz */
-            // Overruled to ENUM_CLOCK
-			g_card_info->card_info.speed = SD_MMC_ENUM_CLOCK;
+			g_card_info->card_info.speed = MMC_MAX_CLOCK;
 			break;
 
 		case 1:
@@ -480,16 +482,7 @@ uint32_t Chip_SDMMC_Acquire(LPC_SDMMC_T *pSDMMC, mci_card_struct *pcardinfo)
 		}
 	}
 
-    const int32_t acquired = prv_card_acquired();
-    if(acquired) {
-
-        // Enumeration done. If clock speed was not auto-detected,
-        // assume SD_MAX_CLOCK
-        if(SD_MMC_ENUM_CLOCK == g_card_info->card_info.speed) {
-            g_card_info->card_info.speed = SD_MAX_CLOCK;
-        }
-    }
-	return acquired;
+    return prv_card_acquired();
 }
 
 /* Get the device size of SD/MMC card (after enumeration) */
